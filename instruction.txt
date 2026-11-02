@@ -1,0 +1,787 @@
+# Student Feedback Management API — Complete Project Guide
+
+Node.js + Express.js + MongoDB + Mongoose
+
+We'll create a fresh backend project from scratch, implement all 3 subtasks of your CA, test the APIs, and finally push the complete source code to GitHub.
+
+The project will be simple, clean, and suitable for your 1-hour practical assessment.
+
+## 1. What we are building
+
+Postman / Thunder Client
+
+Send API requests
+
+Node.js + Express Server
+
+POST · GET · PATCH
+
+MongoDB + Mongoose
+
+Store and manage feedback
+
+### API endpoints
+
+| Method | Endpoint            | Purpose                           |
+| ------ | ------------------- | --------------------------------- |
+| POST   | `/api/feedback`     | Submit student feedback           |
+| GET    | `/api/feedback`     | Retrieve feedback with pagination |
+| PATCH  | `/api/feedback/:id` | Update review status              |
+
+Feedback document structure:
+
+```
+{
+  "studentName": "Rahul Sharma",
+  "courseName": "Node.js",
+  "message": "The session was very informative.",
+  "rating": 5,
+  "status": "Pending"
+}
+```
+
+# 2. Install the prerequisites
+
+You need these tools installed on your computer.
+
+[LF开源软件学园 - 专区 - OSCHINA - 中文开源技术交流社区](https://images.openai.com/static-rsc-4/zswQ_R6YndCQBWvCz-IuR_j-oY-paC_fLt6CP04oEIyjauiRJ5eHFIVssxWAEp3WwvgQo1wIF_APQHNhJXM1vCA6FZQVivzVVrB7kIHYGHAxzfhmfAhZI4LQ9d4xQpdQYaqYyJwqyoMTLdDF64tVOF17D-2Xv36fgFKh0myOVHY?purpose=inline)
+
+Node.js
+
+Required to run the backend and npm.
+
+[Download Node.js](https://nodejs.org/?utm_source=chatgpt.com)
+
+[File:Visual Studio Code 1.35 icon.svg - Wikimedia Commons](https://images.openai.com/static-rsc-4/bwltRsn8xFpdSRcYQ3DdHauINNG_Ll8uEuWak3gU_Cd8IQKU8JMwJXvDy7WOSMXzw_LreGtysSFaVMfFopIshhFxhhA7optqpzdDNA41Fr3DZ8RT6oELKwe8M8zFoIi4_H68G4UOg124XH5x4eObz-mHD-E9xY_6m_hLlZ275hc?purpose=inline)
+
+VS Code
+
+Code editor.
+
+[Download VS Code](https://code.visualstudio.com/?utm_source=chatgpt.com)
+
+[Mongodb Atlas Pricing & Reviews 2025 | Techjockey.com](https://images.openai.com/static-rsc-4/lMYyXntrIWnuGe_s7uSmREIyrL4A2TS4X-JcxPpr-adZ3lZgIjs-W74XuIf12MNL6s_-hIeXUSYm9pU5WcY4HijDncNiPWMPqQ1KhT6RJ24WWj_pmKbDSH69cqzv_S-JKp-ES8TikxCHQ4Hw6VmlYCeLVObqUxEQ_qF9iFWU-cE?purpose=inline)
+
+MongoDB
+
+Database. We'll use MongoDB Atlas (cloud database) so you don't need to install MongoDB locally.
+
+[Open MongoDB Atlas](https://www.mongodb.com/cloud/atlas?utm_source=chatgpt.com)
+
+[Visionco | services](https://images.openai.com/static-rsc-4/bDTDp-kPgMFGVhrV9CFYRBVY_fSLVnXtPoOpKhXLI7R_6Dwzy0vZ9Fy3dm60OSheomIpV9xh6oPBr_3yHRbF-nji9QjXWEQTk6IwrM2RFuYXFIVNtmk21msDsgCUnZAnB1dL215LsGFTPjnE9Ru9RMPG12V05n6oicPO-am4NKI?purpose=inline)
+
+Postman
+
+To test the API endpoints.
+
+[Download Postman](https://www.postman.com/downloads/?utm_source=chatgpt.com)
+
+Check Node.js and npm in your terminal:
+
+```
+node -v
+npm -v
+```
+
+Both commands should display version numbers.
+
+# 3. Create a fresh project
+
+Open VS Code.
+
+Open the terminal using:
+
+- Windows: `Ctrl + ~`
+- Or menu: Terminal → New Terminal
+
+Run these commands one by one:
+
+```
+mkdir student-feedback-api
+cd student-feedback-api
+npm init -y
+```
+
+Install the required packages:
+
+```
+npm install express mongoose dotenv
+```
+
+Install Nodemon for automatic server restart during development:
+
+```
+npm install --save-dev nodemon
+```
+
+Configure the npm scripts:
+
+```
+npm pkg set scripts.start="node server.js"
+npm pkg set scripts.dev="nodemon server.js"
+```
+
+## 4. Create the folder structure
+
+Inside VS Code, create the following folders and files.
+
+student-feedback-api
+
+&#x20;server.js
+
+&#x20;.env
+
+&#x20;.gitignore
+
+&#x20;package.json (auto-generated)
+
+&#x20;config
+
+&#x20;db.js
+
+&#x20;models
+
+&#x20;Feedback.js
+
+&#x20;routes
+
+&#x20;feedbackRoutes.js
+
+Create folders using the terminal:
+
+```
+mkdir config models routes
+```
+
+Create the files using VS Code Explorer.
+
+# 5. Connect MongoDB Atlas
+
+[Free MongoDB Cluster on MongoDB Atlas | by Craftsman | Medium](https://images.openai.com/static-rsc-4/bGqCPCt8IHJp5C2pJ90OjEd1EGPlDF4L7BVvr5NgVvL03EmnKfoObQEKdMSoUG4x6822MuIOqESgYqg83tNg8FBSpvqufafRIvS6p0DPputXaAhTAbKFiIj0KYMtVSZe_zsu5evTK6AGsv9NuwAm_57H2xjibD_bekMxytcAHbk?purpose=inline)
+
+[Get Started with the Node.js Driver - Node.js Driver v6.20 - MongoDB Docs](https://images.openai.com/static-rsc-4/t-Z7Mlvtjt5vlIY5N9VXOmuKPR_KHX-BlYkFRfzi3bXWm1UZtdzJFZNcCrJlfA6yVGRxFDiwZZ9ETr5HrFolgubssqSkRhvHJjFM8Lp2AsT8VI9LG4DjWeIYOMgG6m2XlraKq75t8sgDc121vTEurZmajQCj22_hMGrxU17-sf8?purpose=inline)
+
+[Deploy a Node.js and MongoDB Application to Heroku | AppSignal Blog](https://images.openai.com/static-rsc-4/Kztqvt7U6r42ceSWNRhSvmwoyZUnsH51sludDzTawUE7dHlE6QyYhH51s0Gk9SQ-hCTNFdMFX6LUoLA27N9mBtH3F8q8ygyv9Hc8-Szi9yxyzK-Ey5mp3TjbljtDqlC674y2YRw23cyrGRXO9uipfp8yTOkMxIFGRcbgOrhgb0o?purpose=inline)
+
+Follow these steps:
+
+1. Open [MongoDB Atlas](https://www.mongodb.com/cloud/atlas?utm_source=chatgpt.com).
+2. Create an account or sign in.
+3. Create a free database deployment.
+4. Go to Database → Connect.
+5. Select Drivers.
+6. Choose Node.js.
+7. Copy the MongoDB connection string.
+
+It should look similar to:
+
+```
+mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/
+```
+
+Replace `username` and `password` with your database user credentials.
+
+For Atlas access, add your current IP address to the IP Access List. Create a database user if you haven't already.
+
+## 6. Write the code
+
+### File 1: `.env`
+
+Path: student-feedback-api/.env
+
+```
+PORT=5000
+
+MONGO_URI=mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/studentFeedbackDB
+```
+
+Replace the URI with your actual Atlas connection string.
+
+Do not share this file publicly or push it to GitHub.
+
+### File 2: `.gitignore`
+
+Path: student-feedback-api/.gitignore
+
+```
+node_modules/
+.env
+```
+
+This prevents the dependency folder and MongoDB credentials from being pushed to GitHub.
+
+### File 3: `config/db.js`
+
+Path: student-feedback-api/config/db.js
+
+```
+const mongoose = require("mongoose");
+
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+
+    console.log("MongoDB Connected Successfully");
+  } catch (error) {
+    console.error("MongoDB Connection Failed:", error.message);
+    process.exit(1);
+  }
+};
+
+module.exports = connectDB;
+```
+
+This file connects our Node.js application to MongoDB.
+
+### File 4: `models/Feedback.js`
+
+Path: student-feedback-api/models/Feedback.js
+
+```
+const mongoose = require("mongoose");
+
+const feedbackSchema = new mongoose.Schema(
+  {
+    studentName: {
+      type: String,
+      required: [true, "Student name is required"],
+      trim: true
+    },
+
+    courseName: {
+      type: String,
+      required: [true, "Course name is required"],
+      trim: true
+    },
+
+    message: {
+      type: String,
+      required: [true, "Feedback message is required"],
+      trim: true
+    },
+
+    rating: {
+      type: Number,
+      required: [true, "Rating is required"],
+      min: [1, "Rating must be at least 1"],
+      max: [5, "Rating cannot exceed 5"]
+    },
+
+    status: {
+      type: String,
+      enum: ["Pending", "Reviewed"],
+      default: "Pending"
+    }
+  },
+  {
+    timestamps: true
+  }
+);
+
+module.exports = mongoose.model("Feedback", feedbackSchema);
+```
+
+Subtask 1 — Schema and Model
+
+What this schema does:
+
+- `required` ensures all fields are entered.
+- `min` and `max` ensure rating is between 1 and 5.
+- `enum` restricts status to Pending or Reviewed.
+- `default` sets status automatically to Pending.
+- `timestamps` adds `createdAt` and `updatedAt`.
+
+### File 5: `routes/feedbackRoutes.js`
+
+Path: student-feedback-api/routes/feedbackRoutes.js
+
+This is the main API routing file. It implements all 3 assessment subtasks.
+
+```
+
+const express = require("express");
+const router = express.Router();
+
+const Feedback = require("../models/Feedback");
+
+// SUBTASK 1: POST - Submit Student Feedback
+router.post("/", async (req, res) => {
+  try {
+    const { studentName, courseName, message, rating } = req.body;
+
+    const feedback = new Feedback({
+      studentName,
+      courseName,
+      message,
+      rating
+    });
+
+    const savedFeedback = await feedback.save();
+
+    res.status(201).json({
+      message: "Feedback submitted successfully",
+      feedback: savedFeedback
+    });
+  } catch (error) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        message: error.message
+      });
+    }
+
+    res.status(500).json({
+      message: "Server error",
+      error: error.message
+    });
+  }
+});
+
+// SUBTASK 2: GET - Retrieve Feedback with Pagination
+router.get("/", async (req, res) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(
+      100,
+      Math.max(1, parseInt(req.query.limit) || 10)
+    );
+
+    const skip = (page - 1) * limit;
+
+    const feedbacks = await Feedback.find()
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const totalRecords = await Feedback.countDocuments();
+
+    res.status(200).json({
+      currentPage: page,
+      totalRecords: totalRecords,
+      totalPages: Math.ceil(totalRecords / limit),
+      feedbacks: feedbacks
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Server error",
+      error: error.message
+    });
+  }
+});
+
+// SUBTASK 3: PATCH - Update Feedback Review Status
+router.patch("/:id", async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    if (!["Pending", "Reviewed"].includes(status)) {
+      return res.status(400).json({
+        message: "Status must be Pending or Reviewed"
+      });
+    }
+
+    const updatedFeedback = await Feedback.findByIdAndUpdate(
+      req.params.id,
+      { status: status },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedFeedback) {
+      return res.status(404).json({
+        message: "Feedback record not found"
+      });
+    }
+
+    res.status(200).json({
+      message: "Feedback status updated successfully",
+      feedback: updatedFeedback
+    });
+  } catch (error) {
+    if (error.name === "CastError") {
+      return res.status(400).json({
+        message: "Invalid feedback ID"
+      });
+    }
+
+    res.status(500).json({
+      message: "Server error",
+      error: error.message
+    });
+  }
+});
+
+module.exports = router;
+
+```
+
+### File 6: `server.js`
+
+Path: student-feedback-api/server.js
+
+```
+require("dotenv").config();
+
+const express = require("express");
+const connectDB = require("./config/db");
+
+const app = express();
+
+// Middleware
+app.use(express.json());
+
+// Connect MongoDB
+connectDB();
+
+// Feedback routes
+app.use("/api/feedback", require("./routes/feedbackRoutes"));
+
+// Home route
+app.get("/", (req, res) => {
+  res.send("Student Feedback Management API is running");
+});
+
+// Start server
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+```
+
+# 7. Run the project
+
+In your VS Code terminal, run:
+
+```
+npm run dev
+```
+
+Expected terminal output:
+
+```
+[nodemon] starting `node server.js`
+Server running on port 5000
+MongoDB Connected Successfully
+```
+
+If you see both server and MongoDB connection messages, the backend is running.
+
+Open this URL in your browser:
+
+[http://localhost:5000](http://localhost:5000?utm_source=chatgpt.com)
+
+Expected response:
+
+```
+Student Feedback Management API is running
+```
+
+# 8. Test the API using Postman
+
+Important for practical assessment
+
+All API requests use this base URL:
+
+```
+http://localhost:5000/api/feedback
+```
+
+## Test 1 — POST: Submit Feedback (3 Marks)
+
+POST
+
+/api/feedback
+
+Postman → New HTTP Request → Select POST → Body → raw → JSON
+
+```
+{
+  "studentName": "Rahul Sharma",
+  "courseName": "Node.js",
+  "message": "The session was very informative.",
+  "rating": 5
+}
+```
+
+&#x20; Copy request body&#x20;
+
+Expected response — HTTP 201 Created
+
+```
+{
+  "message": "Feedback submitted successfully",
+  "feedback": {
+    "_id": "672abc123456789012345678",
+    "studentName": "Rahul Sharma",
+    "courseName": "Node.js",
+    "message": "The session was very informative.",
+    "rating": 5,
+    "status": "Pending"
+  }
+}
+```
+
+The `_id` and timestamps will be generated by MongoDB/Mongoose.
+
+
+
+3 Marks
+
+&#x20;This demonstrates schema, model, POST, and validation.
+
+
+
+## Test 2 — GET: Retrieve Feedback with Pagination (3 Marks)
+
+GET
+
+/api/feedback?page=1&limit=5
+
+Use this complete URL in Postman:
+
+```
+http://localhost:5000/api/feedback?page=1&limit=5
+```
+
+Expected response — HTTP 200 OK
+
+```
+{
+  "currentPage": 1,
+  "totalRecords": 12,
+  "totalPages": 3,
+  "feedbacks": [
+    {
+      "_id": "672abc123456789012345678",
+      "studentName": "Rahul Sharma",
+      "courseName": "Node.js",
+      "message": "The session was very informative.",
+      "rating": 5,
+      "status": "Pending"
+    }
+  ]
+}
+```
+
+The example shows a shortened array. If 12 records exist, the first page will return up to 5 records.
+
+### How pagination works
+
+```
+const skip = (page - 1) * limit;
+
+Feedback.find()
+  .skip(skip)
+  .limit(limit);
+```
+
+| Page | Limit | Skip |
+| ---- | ----- | ---- |
+| 1    | 5     | 0    |
+| 2    | 5     | 5    |
+| 3    | 5     | 10   |
+
+- `page` determines which page to retrieve.
+- `limit` determines the number of records per page.
+- `skip()` skips previously fetched records.
+- `limit()` restricts the number of results.
+- `countDocuments()` gives the total records.
+
+
+
+3 Marks
+
+&#x20;This demonstrates pagination and metadata.
+
+
+
+## Test 3 — PATCH: Update Feedback Status (2 Marks)
+
+PATCH
+
+/api/feedback/:id
+
+Replace `:id` with the actual `_id` returned from the POST request.
+
+```
+http://localhost:5000/api/feedback/672abc123456789012345678
+```
+
+Body → raw → JSON
+
+```
+{
+  "status": "Reviewed"
+}
+```
+
+&#x20; Copy request body&#x20;
+
+Expected response — HTTP 200 OK
+
+```
+{
+  "message": "Feedback status updated successfully",
+  "feedback": {
+    "_id": "672abc123456789012345678",
+    "studentName": "Rahul Sharma",
+    "courseName": "Node.js",
+    "message": "The session was very informative.",
+    "rating": 5,
+    "status": "Reviewed"
+  }
+}
+```
+
+
+
+2 Marks
+
+&#x20;This demonstrates status update by MongoDB ID.
+
+
+
+## Test error cases
+
+| Test                           | Expected HTTP status |
+| ------------------------------ | -------------------- |
+| Missing required field in POST | 400 Bad Request      |
+| Rating = 0                     | 400 Bad Request      |
+| Rating = 6                     | 400 Bad Request      |
+| Invalid status                 | 400 Bad Request      |
+| Invalid MongoDB ID format      | 400 Bad Request      |
+| Feedback ID doesn't exist      | 404 Not Found        |
+| Successful POST                | 201 Created          |
+| Successful GET                 | 200 OK               |
+| Successful PATCH               | 200 OK               |
+
+# 9. Push the project to GitHub
+
+[Introduction to Versioning & Git – IS310 - Culture As Data Spring 2026](https://images.openai.com/static-rsc-4/AX2f8qzAuT3-YZbHZ9FR9t3s1QYCDO3iNVn32xyTo-HQ8knG4BrpTWCC_EkTh8q6ivhg_Q_lJWTzlRwX8z9KkdzsD7CAYmc3unqdO8lzcdT9kNlfetXXy7Iee_2EwsWmotzBv3lH_d47-QK_KGtivGc9RzYsEGQJI3xrac4ut5w?purpose=inline)
+
+[How to Host Your Project on GitHub – Explained With Examples](https://images.openai.com/static-rsc-4/iiCe63e-F00S_9U-fZY0IfZMSHuVJFDPenXTXooareKDkcmKWu8aE8S_NcUXy4NSWk0QEBS6bJKAHx_ozuUtwmNUTprwSe4Kx0EX1XX7Iasj8EU2tMeKtBqsU_omfVINyC55IMpciu-XPUGyO4BhlZK59baP-fYbv-gW7ydSBno?purpose=inline)
+
+### Step 1: Create a GitHub repository
+
+1. Open [GitHub](https://github.com/?utm_source=chatgpt.com).
+2. Sign in.
+3. Click the `+` icon → New repository.
+4. Repository name:
+
+```
+student-feedback-api
+```
+
+5. Choose Public or Private.
+6. Leave "Add a README file" unchecked.
+7. Click Create repository.
+
+### Step 2: Initialize Git
+
+Go to the VS Code terminal, inside the project directory.
+
+Run:
+
+```
+git init
+```
+
+Set the branch name:
+
+```
+git branch -M main
+```
+
+Add all files:
+
+```
+git add .
+```
+
+Commit your code:
+
+```
+git commit -m "Initial commit - Student Feedback Management API"
+```
+
+### Step 3: Connect to GitHub
+
+Replace `YOUR_USERNAME` with your GitHub username.
+
+```
+git remote add origin https://github.com/YOUR_USERNAME/student-feedback-api.git
+```
+
+Push the project:
+
+```
+git push -u origin main
+```
+
+If GitHub asks you to authenticate, complete the sign-in process through your browser or Git credential manager.
+
+GitHub Push Complete
+
+Your project should now be available at:
+
+```
+https://github.com/YOUR_USERNAME/student-feedback-api
+```
+
+## 10. Final project checklist
+
+Assessment completion
+
+0/12
+
+Create Node.js project using npm init
+
+Install Express, Mongoose, dotenv and Nodemon
+
+Create folder structure
+
+Configure MongoDB Atlas
+
+Create Feedback schema and model
+
+Implement POST /api/feedback
+
+Implement GET /api/feedback with skip() and limit()
+
+Implement PATCH /api/feedback/:id
+
+Test all 3 APIs in Postman
+
+Test validation and error responses
+
+Capture API response screenshots
+
+Push code to GitHub
+
+## 11. Important viva questions
+
+| Question                       | Answer                                                        |
+| ------------------------------ | ------------------------------------------------------------- |
+| What is Node.js?               | A JavaScript runtime used to run JavaScript on the server.    |
+| What is Express.js?            | A web framework for Node.js used to build APIs.               |
+| What is Mongoose?              | An ODM library for MongoDB.                                   |
+| What is a schema?              | A structure defining the fields and validation of a document. |
+| What is POST?                  | Used to create a new resource.                                |
+| What is GET?                   | Used to retrieve resources.                                   |
+| What is PATCH?                 | Used to partially update a resource.                          |
+| What is `skip()`?              | Skips a specified number of documents.                        |
+| What is `limit()`?             | Restricts the number of documents returned.                   |
+| What is `findByIdAndUpdate()`? | Finds a document by ID and updates it.                        |
+| Why use status 201?            | It indicates a resource was successfully created.             |
+| What is status 404?            | The requested resource was not found.                         |
+
+## Final tip for your CA
+
+Prioritize these three parts to secure the 8 marks:
+
+- POST API + Mongoose validation
+- GET API + pagination using `skip()` and `limit()`
+- PATCH API + error handling for nonexistent IDs
+
+This project covers the full assessment rubric. Authentication, frontend, and deployment are not necessary.
+
+One important note: The GitHub repository should contain your source code, `package.json`, and `.gitignore`, but never your `.env` file or database password.
